@@ -24,7 +24,7 @@ struct bpf_array_aux {
     /* total size: 112 */
 };
 
-/home/jmill/kernel-junk/linux-6.1-rc3/kernel/bpf/arraymap.c:1109
+/home/jmill/linux/kernel/bpf/arraymap.c:1109
 static struct bpf_map *prog_array_map_alloc(union bpf_attr *attr)
 {
 	struct bpf_array_aux *aux;
