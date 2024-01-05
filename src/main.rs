@@ -12,6 +12,7 @@ mod wegg;
 
 #[derive(Parser)]
 struct CmdArgs {
+    /// Path to vmlinux file
     #[clap(help = "The path to the vmlinux file.")]
     vmlinux_path: PathBuf,
 
