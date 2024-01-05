@@ -1,0 +1,17 @@
+[package]
+name = "kheap_sift"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+weggli = { git = "https://github.com/weggli-rs/weggli.git", branch = "main" }
+clap = { version = "4.2", features = ["derive"] }
+tree-sitter = { version = "0.20.9" }
+thread_local = { version = "1.1" }
+walkdir = { version = "2.3.2" }
+anyhow = { version = "1.0.75" }
+memmap2 = { version = "0.5.5" }
+rayon = { version = "1.5.3"}
+colored = { version = "2.0.0" }
+dwat = { version = "0.4.1" }
+regex = { version = "1" }
