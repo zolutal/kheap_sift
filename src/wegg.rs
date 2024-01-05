@@ -52,7 +52,7 @@ pub(super) struct ResultsCtx {
 
 pub(super) fn weggling_time(work: &[WorkItem], files: Vec<PathBuf>,
                             struct_name: String, struct_type: dwat::Struct,
-                            dwarf: &dwat::Dwarf) {
+                            dwarf: &dwat::Dwarf, quiet: bool) {
     rayon::scope(|s| {
         // spin up channels for worker communication
         let (ast_tx, ast_rx) = mpsc::channel();
@@ -62,6 +62,7 @@ pub(super) fn weggling_time(work: &[WorkItem], files: Vec<PathBuf>,
         let cpp = false;
         let w = &work;
         let files = files.clone();
+        let quiet = &quiet;
         let _enable_line_numbers = false;
 
         // Spawn worker to iterate through files, parse potential matches and forward ASTs
@@ -72,7 +73,7 @@ pub(super) fn weggling_time(work: &[WorkItem], files: Vec<PathBuf>,
         // directly print any remaining matches. For multi
         // query runs we forward them to our next worker function
         s.spawn(move |_| execute_queries_worker(ast_rx, results_tx, &w,
-                                       struct_name, struct_type, dwarf));
+                                       struct_name, struct_type, dwarf, quiet));
     });
 }
 
@@ -122,6 +123,7 @@ pub(super) fn execute_queries_worker(
     struct_name: String,
     struct_type: dwat::Struct,
     dwarf: &dwat::Dwarf,
+    quiet: &bool,
 ) {
     receiver.into_iter().par_bridge().for_each_with(
         results_tx,
@@ -140,24 +142,29 @@ pub(super) fn execute_queries_worker(
                     let fmt = struct_type.to_string_verbose(dwarf, 1).expect(
                         &format!("dwat failed when formatting struct: {}", struct_name)
                     );
-                    println!("======== Found allocation sites for: struct {} ========\n", struct_name);
-                    println!("{}\n", fmt);
 
-                    // Print match or forward it if we are in a multi query context
-                    let process_match = |m: QueryResult| {
-                        // single query
-                        let line = source[..m.start_offset()].matches('\n').count() + 1;
-                        println!(
-                            "{}:{}\n{}",
-                            path.clone().bold(),
-                            line,
-                            m.display(&source, 2, 2, false) // b4 after line_nos
-                        );
-                    };
+                    if !quiet {
+                        println!("======== Found allocation sites for: struct {} ========\n", struct_name);
+                        println!("{}\n", fmt);
 
-                    matches
-                        .into_iter()
-                        .for_each(process_match);
+                        // Print match or forward it if we are in a multi query context
+                        let process_match = |m: QueryResult| {
+                            // single query
+                            let line = source[..m.start_offset()].matches('\n').count() + 1;
+                            println!(
+                                "{}:{}\n{}",
+                                path.clone().bold(),
+                                line,
+                                m.display(&source, 2, 2, false) // b4 after line_nos
+                            );
+                        };
+
+                        matches
+                            .into_iter()
+                            .for_each(process_match);
+                    } else {
+                        println!("{struct_name}");
+                    }
                 });
         },
     );

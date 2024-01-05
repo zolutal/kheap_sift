@@ -12,10 +12,25 @@ mod wegg;
 
 #[derive(Parser)]
 struct CmdArgs {
+    #[clap(help = "The path to the vmlinux file.")]
     vmlinux_path: PathBuf,
+
+    /// Path to the source code
+    #[clap(help = "The path to the source code directory.")]
     source_path: PathBuf,
+
+    /// The lower bound for struct size
+    #[clap(help = "The lower bound (inclusive) for the analysis.")]
     lower_bound: usize,
+
+    /// The upper bound for struct size
+    #[clap(help = "The upper bound (inclusive) for the analysis.")]
     upper_bound: usize,
+
+    /// Silence dwat/weggli output, only print struct names
+    #[clap(long, action, help = "Silence dwat/weggli output, only print struct \
+                                 names.")]
+    quiet: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -68,7 +83,9 @@ fn main() -> anyhow::Result<()> {
         let work = vec![wegg::WorkItem { qt, identifiers }];
 
         // weggle
-        wegg::weggling_time(&work, files.clone(), name, _struct, &dwarf)
+        wegg::weggling_time(&work, files.clone(),
+                            name, _struct,
+                            &dwarf, args.quiet);
     }
     Ok(())
 }

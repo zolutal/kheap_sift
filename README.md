@@ -6,7 +6,19 @@ This tool combines DWARF type information parsed from a vmlinux file using [dwat
 
 # Usage
 
-`Usage: kheap_sift <VMLINUX_PATH> <SOURCE_PATH> <LOWER_BOUND> <UPPER_BOUND>`
+```
+Usage: kheap_sift [OPTIONS] <VMLINUX_PATH> <SOURCE_PATH> <LOWER_BOUND> <UPPER_BOUND>
+
+Arguments:
+  <VMLINUX_PATH>  The path to the vmlinux file.
+  <SOURCE_PATH>   The path to the source code directory.
+  <LOWER_BOUND>   The lower bound (inclusive) for the analysis.
+  <UPPER_BOUND>   The upper bound (inclusive) for the analysis.
+
+Options:
+      --quiet  Silence dwat/weggli output, only print struct names.
+  -h, --help   Print help
+```
 
 ## Example Ouput
 
