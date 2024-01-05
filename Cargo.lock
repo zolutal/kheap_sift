@@ -763,7 +763,7 @@ dependencies = [
 [[package]]
 name = "weggli"
 version = "0.2.4"
-source = "git+https://github.com/weggli-rs/weggli.git?branch=main#9d97d462854a9b682874b259f70cc5a97a70f2cc"
+source = "git+https://github.com/weggli-rs/weggli.git?rev=9d97d46#9d97d462854a9b682874b259f70cc5a97a70f2cc"
 dependencies = [
  "cc",
  "clap 2.34.0",

@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-weggli = { git = "https://github.com/weggli-rs/weggli.git", branch = "main" }
+weggli = { git = "https://github.com/weggli-rs/weggli.git", rev = "9d97d46" }
 clap = { version = "4.2", features = ["derive"] }
 tree-sitter = { version = "0.20.9" }
 thread_local = { version = "1.1" }
