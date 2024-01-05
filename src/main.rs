@@ -15,16 +15,16 @@ struct CmdArgs {
     #[clap(help = "The path to the vmlinux file.")]
     vmlinux_path: PathBuf,
 
-    /// Path to the source code
-    #[clap(help = "The path to the source code directory.")]
+    /// Path to Linux source code
+    #[clap(help = "The path to the Linux source code directory.")]
     source_path: PathBuf,
 
     /// The lower bound for struct size
-    #[clap(help = "The lower bound (inclusive) for the analysis.")]
+    #[clap(help = "The lower bound for struct sizes (inclusive).")]
     lower_bound: usize,
 
     /// The upper bound for struct size
-    #[clap(help = "The upper bound (inclusive) for the analysis.")]
+    #[clap(help = "The upper bound for struct sizes (exclusive).")]
     upper_bound: usize,
 
     /// Silence dwat/weggli output, only print struct names

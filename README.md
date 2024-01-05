@@ -11,9 +11,9 @@ Usage: kheap_sift [OPTIONS] <VMLINUX_PATH> <SOURCE_PATH> <LOWER_BOUND> <UPPER_BO
 
 Arguments:
   <VMLINUX_PATH>  The path to the vmlinux file.
-  <SOURCE_PATH>   The path to the source code directory.
-  <LOWER_BOUND>   The lower bound (inclusive) for the analysis.
-  <UPPER_BOUND>   The upper bound (inclusive) for the analysis.
+  <SOURCE_PATH>   The path to the Linux source code directory.
+  <LOWER_BOUND>   The lower bound for struct sizes (inclusive).
+  <UPPER_BOUND>   The upper bound for struct sizes (exclusive).
 
 Options:
       --quiet  Silence dwat/weggli output, only print struct names.
