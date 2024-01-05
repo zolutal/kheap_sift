@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
 
     // regex constraints contains : ("$varname", (negative, regex))
     let mut regex_map = HashMap::new();
-    let regex = Regex::new("k[mvz]alloc")?;
+    let regex = Regex::new("\\bk[mvz]alloc")?;
     regex_map.extend(vec![("$alloc".to_string(), (false, regex))]);
     let regex_constraints = RegexMap::new(regex_map);
 
