@@ -20,7 +20,7 @@ Options:
   -h, --help   Print help
 ```
 
-## Example Ouput
+## Example Output/Usage
 
 ```
 ┌──(jmill@ubun)-[~/repos/kheap_sift]
@@ -48,6 +48,37 @@ static struct bpf_map *prog_array_map_alloc(union bpf_attr *attr)
 ...
 
 	return map;
+```
+
+```
+┌──(jmill@ubun)-[~/repos/kheap_sift]
+└─$ kheap_sift ~/linux/vmlinux ~/linux/ 0 64 --flags "GFP_KERNEL_ACCOUNT" --exclude '*/drivers/**/*'
+======== Found allocation sites for: struct fdtable ========
+
+struct fdtable {
+    unsigned int max_fds;                       	/*    4 |    0 */
+    struct file **fd;                           	/*    8 |    8 */
+    long unsigned int *close_on_exec;           	/*    8 |   16 */
+    long unsigned int *open_fds;                	/*    8 |   24 */
+    long unsigned int *full_fds_bits;           	/*    8 |   32 */
+    struct callback_head rcu;                   	/*   16 |   40 */
+
+    /* total size: 56 */
+} __attribute((__aligned__(8)));
+
+/home/jmill/linux/fs/file.c:105
+static struct fdtable * alloc_fdtable(unsigned int nr)
+{
+	struct fdtable *fdt;
+...
+		nr = ((sysctl_nr_open - 1) | (BITS_PER_LONG - 1)) + 1;
+
+	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL_ACCOUNT);
+	if (!fdt)
+		goto out;
+...
+out:
+	return NULL;
 ```
 
 # Contributing

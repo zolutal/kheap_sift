@@ -22,6 +22,7 @@ Modified by Justin Miller (https://github.com/zolutal), 2024
 */
 
 use rayon::iter::{IntoParallelIterator, ParallelIterator, ParallelBridge};
+use regex::Regex;
 use weggli::result::QueryResult;
 use thread_local::ThreadLocal;
 use std::sync::mpsc::Receiver;
@@ -52,7 +53,8 @@ pub(super) struct ResultsCtx {
 
 pub(super) fn weggling_time(work: &[WorkItem], files: Vec<PathBuf>,
                             struct_name: String, struct_type: dwat::Struct,
-                            dwarf: &dwat::Dwarf, quiet: bool) {
+                            flags_regex: Regex, dwarf: &dwat::Dwarf,
+                            quiet: bool) {
     rayon::scope(|s| {
         // spin up channels for worker communication
         let (ast_tx, ast_rx) = mpsc::channel();
@@ -73,7 +75,8 @@ pub(super) fn weggling_time(work: &[WorkItem], files: Vec<PathBuf>,
         // directly print any remaining matches. For multi
         // query runs we forward them to our next worker function
         s.spawn(move |_| execute_queries_worker(ast_rx, results_tx, &w,
-                                       struct_name, struct_type, dwarf, quiet));
+                                       struct_name, struct_type, flags_regex,
+                                       dwarf, quiet));
     });
 }
 
@@ -122,6 +125,7 @@ pub(super) fn execute_queries_worker(
     work: &[WorkItem],
     struct_name: String,
     struct_type: dwat::Struct,
+    flags_regex: Regex,
     dwarf: &dwat::Dwarf,
     quiet: &bool,
 ) {
@@ -144,24 +148,39 @@ pub(super) fn execute_queries_worker(
                     );
 
                     if !quiet {
-                        println!("======== Found allocation sites for: struct {} ========\n", struct_name);
-                        println!("{}\n", fmt);
-
                         // Print match or forward it if we are in a multi query context
-                        let process_match = |m: QueryResult| {
+                        let process_match = |m: QueryResult| -> Option<String> {
                             // single query
+                            if let Some(flags_capture) = m.captures.last() {
+                                let range = &flags_capture.range;
+                                let flags = &source[range.start..range.end];
+                                if flags_regex.find(flags).is_none() {
+                                    return None;
+                                }
+                            }
+
                             let line = source[..m.start_offset()].matches('\n').count() + 1;
-                            println!(
+                            Some(format!(
                                 "{}:{}\n{}",
                                 path.clone().bold(),
                                 line,
                                 m.display(&source, 2, 2, false) // b4 after line_nos
-                            );
+                            ))
                         };
 
-                        matches
-                            .into_iter()
-                            .for_each(process_match);
+                        let mut results: Vec<String> = vec![];
+                        for m in matches.into_iter() {
+                            if let Some(r) = process_match(m) {
+                                results.push(r);
+                            }
+                        }
+
+                        if results.len() > 0 {
+                            println!("======== Found allocation sites for: struct {} ========\n", struct_name);
+                            println!("{}\n", fmt);
+                            results.into_iter().for_each(|r| println!("{}", r))
+                        }
+
                     } else {
                         println!("{struct_name}");
                     }
