@@ -87,11 +87,3 @@ out:
 
 Feel free to open issues/PRs for improvements!
 
-# Attribution
-
-The code in the src/wegg.rs file is largely copied with minor or no modifications from here:
-https://github.com/weggli-rs/weggli/blob/main/src/main.rs
-
-Therefore, for attribution reasons the license for weggli is included in this project as "LICENSE.weggli" because I think/hope thats how licensing works.
-
-The rest of the code is under the BSD-2-Clause license found in "LICENSE".
