@@ -292,10 +292,9 @@ fn display_match(
     }
 
     // set initially to max, so that the elipses won't print the first time through
-    // minus one so that it doesn't overflow in the or condition for debug builds
-    let mut last_line = usize::MAX - 1;
+    let mut last_line = usize::MAX;
     for line_idx in included_lines {
-        if line_idx == usize::MAX - 1 || last_line + 1 != line_idx {
+        if last_line == usize::MAX || last_line + 1 != line_idx {
             println!("...");
         }
         println!("{}", src_lines[line_idx]);
