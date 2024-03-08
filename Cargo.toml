@@ -4,15 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-weggli = { git = "https://github.com/weggli-rs/weggli.git", rev = "9d97d46" }
 clap = { version = "4.2", features = ["derive"] }
 tree-sitter = { version = "0.20.9" }
 thread_local = { version = "1.1" }
-walkdir = { version = "2.3.2" }
+walkdir = "2.3.2"
 anyhow = { version = "1.0.75" }
 memmap2 = { version = "0.5.5" }
 rayon = { version = "1.5.3"}
 colored = { version = "2.0.0" }
-dwat = { version = "0.4.1" }
+dwat = { version = "0.6.3" }
 regex = { version = "1" }
 globset = { version = "0.4.14" }
+tree-sitter-c = "0.20.8"
+tokio = { version = "1", features = ["full"] }
+lazy_static = "1.4.0"
+
+[profile.release]
+opt-level = 3
+debug = "none"
+strip = "symbols"
+debug-assertions = false
+overflow-checks = false
+lto = "fat"
+incremental = false
+codegen-units = 1
