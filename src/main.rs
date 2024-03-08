@@ -30,11 +30,11 @@ struct CmdArgs {
     source_path: PathBuf,
 
     /// The lower bound for struct size
-    #[clap(help = "The lower bound for struct sizes (inclusive).")]
+    #[clap(help = "The lower bound for struct sizes (exclusive).")]
     lower_bound: usize,
 
     /// The upper bound for struct size
-    #[clap(help = "The upper bound for struct sizes (exclusive).")]
+    #[clap(help = "The upper bound for struct sizes (inclusive).")]
     upper_bound: usize,
 
     /// Silence dwat/weggli output, only print struct names
@@ -84,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
     let struct_map: HashMap<String, dwat::Struct> = {
         struct_map.into_iter().filter(|(_, struc)| {
             if let Ok(bytesz) = struc.byte_size(&dwarf) {
-                args.lower_bound <= bytesz && bytesz < args.upper_bound
+                args.lower_bound < bytesz && bytesz <= args.upper_bound
             } else {
                 false
             }

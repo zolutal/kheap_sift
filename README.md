@@ -16,8 +16,10 @@ Arguments:
   <UPPER_BOUND>   The upper bound for struct sizes (inclusive).
 
 Options:
-      --quiet  Silence dwat/weggli output, only print struct names.
-  -h, --help   Print help
+      --quiet              Silence dwat/weggli output, only print struct names.
+      --flags <FLAGS>      Allocation flags argument regex
+      --exclude <EXCLUDE>  Glob to exclude files based on
+  -h, --help               Print help
 ```
 
 ## Example Output/Usage
