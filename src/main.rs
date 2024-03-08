@@ -41,8 +41,7 @@ struct CmdArgs {
     #[clap(
         long,
         action,
-        help = "Silence dwat/weggli output, only print struct \
-                                 names."
+        help = "Silence dwat/weggli output, only print struct names."
     )]
     quiet: bool,
 
@@ -52,8 +51,10 @@ struct CmdArgs {
 
     /// Glob to exclude files, can be specified multiple times to provide
     /// multiple globs
-    #[clap(long, action=Append, help = "Glob to exclude files based on, can be \
-                                        specified multiple times")]
+    #[clap(long,
+           action=Append,
+           help = "Glob to exclude files based on, can be specified multiple times"
+    )]
     exclude: Vec<String>,
 
     /// Number of threads to scale up to
@@ -107,7 +108,7 @@ async fn main() -> anyhow::Result<()> {
     let mut files: Vec<PathBuf> = vec![];
 
     let exclude_globs = &args.exclude;
-    if exclude_globs.len() > 0 {
+    if !exclude_globs.is_empty() {
         let mut builder = globset::GlobSetBuilder::new();
         for glob in exclude_globs {
             builder.add(globset::Glob::new(glob)?);
@@ -125,7 +126,7 @@ async fn main() -> anyhow::Result<()> {
         files = iter_files;
     }
 
-    if files.len() == 0 {
+    if files.is_empty() {
         println!("Exiting, no files to process");
         return Ok(());
     }
@@ -208,14 +209,14 @@ fn display_match(
     dwarf: &Arc<RwLock<dwat::dwarf::OwnedDwarf>>,
     qm: &QueryMatch,
 ) {
-    let struct_name = qm.struct_name.utf8_text(&content).unwrap();
+    let struct_name = qm.struct_name.utf8_text(content).unwrap();
 
     let dwarf = dwarf.read().expect("failed to aqcuire dwarf rwlock");
     let struct_str = struct_.to_string_verbose(&*dwarf, 1).unwrap();
     drop(dwarf);
 
     let decl_line_start =
-        byte_offset_to_line_number(&content, qm.function_definition.byte_range().start).unwrap();
+        byte_offset_to_line_number(content, qm.function_definition.byte_range().start).unwrap();
 
     let mut match_ranges: Vec<std::ops::Range<usize>> = vec![];
     match_ranges.push(qm.struct_name.byte_range());
@@ -246,10 +247,10 @@ fn display_match(
     let mut seen: usize = 0;
     for (idx, line) in function_src.lines().enumerate() {
         for range in &match_ranges {
-            if (seen..seen + line.len() + 1).contains(&(&range.start - &base_range.start)) {
-                if !included_lines.contains(&idx) {
-                    included_lines.push(idx);
-                }
+            if (seen..seen + line.len() + 1).contains(&(&range.start - &base_range.start))
+                && !included_lines.contains(&idx)
+            {
+                included_lines.push(idx);
             }
         }
         seen += line.len() + 1;
@@ -264,7 +265,7 @@ fn display_match(
 
     println!("======== Found allocation site for: struct {struct_name} ========\n");
     println!("{}", struct_str);
-    println!("");
+    println!();
     if std::io::stdout().is_terminal() {
         println!(
             "\x1b[1m{}\x1b[0m:{}",
@@ -279,12 +280,11 @@ fn display_match(
 
     // add last line if it wasn't already included and it is a return
     let src_lines_ct = function_src.lines().count() - 1;
-    if !included_lines.contains(&(src_lines_ct - 1)) {
-        if src_lines[src_lines_ct - 1].contains("return ")
-            && src_lines[src_lines_ct - 1].ends_with(";")
-        {
-            included_lines.push(src_lines_ct - 1);
-        }
+    if !included_lines.contains(&(src_lines_ct - 1))
+        && src_lines[src_lines_ct - 1].contains("return ")
+        && src_lines[src_lines_ct - 1].ends_with(';')
+    {
+        included_lines.push(src_lines_ct - 1);
     }
     // add last line if it wasn't already included
     if !included_lines.contains(&src_lines_ct) {
@@ -293,15 +293,15 @@ fn display_match(
 
     // set initially to max, so that the elipses won't print the first time through
     // minus one so that it doesn't overflow in the or condition for debug builds
-    let mut last_line = usize::MAX-1;
+    let mut last_line = usize::MAX - 1;
     for line_idx in included_lines {
-        if line_idx == usize::MAX-1 || last_line + 1 != line_idx {
+        if line_idx == usize::MAX - 1 || last_line + 1 != line_idx {
             println!("...");
         }
         println!("{}", src_lines[line_idx]);
         last_line = line_idx;
     }
-    println!("");
+    println!();
 
     drop(lock);
 }
@@ -388,7 +388,7 @@ async fn process_file_content(
         if let Some(struct_) = struct_map.get(&struct_name) {
             let mut flags_regex = Regex::new(".*")?;
             if let Some(ref flags_regex_str) = flags_regex_str {
-                flags_regex = Regex::new(&flags_regex_str)?;
+                flags_regex = Regex::new(flags_regex_str)?;
             }
             let flags = captures
                 .get(7)
@@ -411,7 +411,7 @@ async fn process_file_content(
                 flags: captures.get(7).unwrap().node,
             };
 
-            display_match(&content, &path, &struct_, &dwarf, &qm);
+            display_match(&content, &path, struct_, &dwarf, &qm);
         }
     }
 
