@@ -37,11 +37,13 @@ struct CmdArgs {
     #[clap(help = "The upper bound for struct sizes (inclusive).")]
     upper_bound: usize,
 
-    /// Silence dwat/weggli output, only print struct names
+    /// Silence dwat/weggli output, only print struct names.
+    /// Note: will print duplicates.
     #[clap(
         long,
         action,
-        help = "Silence dwat/weggli output, only print struct names."
+        help = "Silence most output, only print struct names when allocation \
+                sites are found."
     )]
     quiet: bool,
 
@@ -53,7 +55,8 @@ struct CmdArgs {
     /// multiple globs
     #[clap(long,
            action=Append,
-           help = "Glob to exclude files based on, can be specified multiple times"
+           help = "Glob to exclude files based on, can be specified multiple \
+                   times"
     )]
     exclude: Vec<String>,
 
@@ -62,9 +65,12 @@ struct CmdArgs {
     threads: Option<usize>,
 }
 
-// Define a global static mutex for stdout
 lazy_static! {
+    // Define a global static mutex for stdout
     static ref STDOUT_MUTEX: Arc<Mutex<()>> = Arc::new(Mutex::new(()));
+
+    // global static variable for quiet mode
+    static ref QUIET_MODE: Arc<Mutex<bool>> = Arc::new(Mutex::new(false));
 }
 
 fn collect_src_files(dir: &PathBuf) -> Vec<PathBuf> {
@@ -125,6 +131,10 @@ async fn main() -> anyhow::Result<()> {
     } else {
         files = iter_files;
     }
+
+    let mut quiet_mode = QUIET_MODE.lock().unwrap();
+    *quiet_mode = args.quiet;
+    drop(quiet_mode);
 
     if files.is_empty() {
         println!("Exiting, no files to process");
@@ -211,6 +221,11 @@ fn display_match(
 ) {
     let struct_name = qm.struct_name.utf8_text(content).unwrap();
 
+    if *QUIET_MODE.lock().unwrap() {
+        println!("{struct_name}");
+        return;
+    }
+
     let dwarf = dwarf.read().expect("failed to aqcuire dwarf rwlock");
     let struct_str = struct_.to_string_verbose(&*dwarf, 1).unwrap();
     drop(dwarf);
@@ -245,7 +260,7 @@ fn display_match(
     // determine which lines will be included, always include lines up to the opening brace
     let mut included_lines: Vec<usize> = (0..end_decl_line).collect();
     let mut seen: usize = 0;
-    for (idx, line) in function_src.lines().enumerate() {
+for (idx, line) in function_src.lines().enumerate() {
         for range in &match_ranges {
             if (seen..seen + line.len() + 1).contains(&(&range.start - &base_range.start))
                 && !included_lines.contains(&idx)
