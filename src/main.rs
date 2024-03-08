@@ -21,24 +21,24 @@ use tokio::task;
 
 #[derive(Parser)]
 struct CmdArgs {
-    /// Path to vmlinux file
+    /// The path to the vmlinux file.
     #[clap(help = "The path to the vmlinux file.")]
     vmlinux_path: PathBuf,
 
-    /// Path to Linux source code
+    /// The path to the Linux source code directory.
     #[clap(help = "The path to the Linux source code directory.")]
     source_path: PathBuf,
 
-    /// The lower bound for struct size
+    /// The lower bound for struct sizes (exclusive).
     #[clap(help = "The lower bound for struct sizes (exclusive).")]
     lower_bound: usize,
 
-    /// The upper bound for struct size
+    /// The upper bound for struct sizes (inclusive).
     #[clap(help = "The upper bound for struct sizes (inclusive).")]
     upper_bound: usize,
 
-    /// Silence dwat/weggli output, only print struct names.
-    /// Note: will print duplicates.
+    /// Silence most output, only print struct names when allocation sites are
+    /// found.
     #[clap(
         long,
         action,
@@ -47,21 +47,20 @@ struct CmdArgs {
     )]
     quiet: bool,
 
-    /// Allocation flags flags argument regex
-    #[clap(long, help = "Allocation flags argument regex")]
+    /// Regex filter on the allocation flags argument.
+    #[clap(long, help = "Regex filter on the allocation flags argument.")]
     flags: Option<String>,
 
-    /// Glob to exclude files, can be specified multiple times to provide
-    /// multiple globs
-    #[clap(long,
-           action=Append,
-           help = "Glob to exclude files based on, can be specified multiple \
-                   times"
+    /// Glob to exclude files based on, can be specified multiple times.
+    #[clap(
+       long,
+       action=Append,
+       help = "Glob to exclude files based on, can be specified multiple times."
     )]
     exclude: Vec<String>,
 
-    /// Number of threads to scale up to
-    #[clap(long, help = "Number of threads to scale up to")]
+    /// Number of threads to scale up to.
+    #[clap(long, help = "Number of threads to scale up to.")]
     threads: Option<usize>,
 }
 

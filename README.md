@@ -16,9 +16,10 @@ Arguments:
   <UPPER_BOUND>   The upper bound for struct sizes (inclusive).
 
 Options:
-      --quiet              Silence dwat/weggli output, only print struct names.
-      --flags <FLAGS>      Allocation flags argument regex
-      --exclude <EXCLUDE>  Glob to exclude files based on
+      --quiet              Silence most output, only print struct names when allocation sites are found.
+      --flags <FLAGS>      Regex filter on the allocation flags argument.
+      --exclude <EXCLUDE>  Glob to exclude files based on, can be specified multiple times.
+      --threads <THREADS>  Number of threads to scale up to.
   -h, --help               Print help
 ```
 
@@ -54,33 +55,25 @@ static struct bpf_map *prog_array_map_alloc(union bpf_attr *attr)
 
 ```
 ┌──(jmill@ubun)-[~/repos/kheap_sift]
-└─$ kheap_sift ~/linux/vmlinux ~/linux/ 0 64 --flags "GFP_KERNEL_ACCOUNT" --exclude '*/drivers/**/*'
-======== Found allocation sites for: struct fdtable ========
+└─$ kheap_sift ~/linux-6.6.7/vmlinux ~/linux-6.6.7 128 256 --exclude '*/drivers/**/*' --flags "GFP_KERNEL$" --threads 16
+======== Found allocation site for: struct deflate_ctx ========
 
-struct fdtable {
-    unsigned int max_fds;                       	/*    4 |    0 */
-    struct file **fd;                           	/*    8 |    8 */
-    long unsigned int *close_on_exec;           	/*    8 |   16 */
-    long unsigned int *open_fds;                	/*    8 |   24 */
-    long unsigned int *full_fds_bits;           	/*    8 |   32 */
-    struct callback_head rcu;                   	/*   16 |   40 */
+struct deflate_ctx {
+    struct z_stream_s comp_stream;              	/*   96 |    0 */
+    struct z_stream_s decomp_stream;            	/*   96 |   96 */
 
-    /* total size: 56 */
-} __attribute((__aligned__(8)));
+    /* total size: 192 */
+};
 
-/home/jmill/linux/fs/file.c:105
-static struct fdtable * alloc_fdtable(unsigned int nr)
-{
-	struct fdtable *fdt;
+/home/jmill/linux-6.6.7/crypto/deflate.c:115
+static void *deflate_alloc_ctx(struct crypto_scomp *tfm)
 ...
-		nr = ((sysctl_nr_open - 1) | (BITS_PER_LONG - 1)) + 1;
-
-	fdt = kmalloc(sizeof(struct fdtable), GFP_KERNEL_ACCOUNT);
-	if (!fdt)
-		goto out;
+	struct deflate_ctx *ctx;
 ...
-out:
-	return NULL;
+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+...
+	return ctx;
+}
 ```
 
 # Contributing
