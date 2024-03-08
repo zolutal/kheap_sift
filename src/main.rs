@@ -294,7 +294,7 @@ fn display_match(
     // set initially to max, so that the elipses won't print the first time through
     let mut last_line = usize::MAX;
     for line_idx in included_lines {
-        if last_line == usize::MAX || last_line + 1 != line_idx {
+        if last_line != usize::MAX && last_line + 1 != line_idx {
             println!("...");
         }
         println!("{}", src_lines[line_idx]);
